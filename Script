@@ -1,0 +1,63 @@
+-- Загрузка UI библиотеки Rayfield
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+-- Создание главного окна Lumina Workshop
+local Window = Rayfield:CreateWindow({
+    Name = "Lumina Workshop | Blox Fruits v1.0",
+    LoadingTitle = "Lumina ESP System",
+    LoadingSubtitle = "by Lumina",
+    ConfigurationSaving = {
+        Enabled = true,
+        FolderName = "LuminaConfigs",
+    }
+})
+
+-- Создание вкладки для ESP
+local ESPTab = Window:CreateTab("ESP Visuals", nil) -- 'nil' значит иконки нет
+local Section = ESPTab:CreateSection("ESP Features")
+
+-- Функция для ESP (сюда ты будешь вставлять логику рисования)
+local function ToggleESP(name, state)
+    if state then
+        print(name .. " enabled")
+        -- Здесь будет код активации ESP (Drawing library)
+    else
+        print(name .. " disabled")
+        -- Здесь будет код отключения ESP
+    end
+end
+
+-- 1. ESP People
+ESPTab:CreateToggle({
+    Name = "Player ESP",
+    CurrentValue = false,
+    Callback = function(Value)
+        ToggleESP("Player ESP", Value)
+    end
+})
+
+-- 2. ESP Fruits
+ESPTab:CreateToggle({
+    Name = "Fruit ESP",
+    CurrentValue = false,
+    Callback = function(Value)
+        ToggleESP("Fruit ESP", Value)
+    end
+})
+
+-- 3. ESP Chests
+ESPTab:CreateToggle({
+    Name = "Chest ESP",
+    CurrentValue = false,
+    Callback = function(Value)
+        ToggleESP("Chest ESP", Value)
+    end
+})
+
+-- Уведомление при запуске
+Rayfield:Notify({
+    Title = "Lumina Workshop",
+    Content = "ESP System Loaded Successfully!",
+    Duration = 5,
+    Image = nil,
+})
