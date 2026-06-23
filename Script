@@ -18,41 +18,54 @@ local Section = ESPTab:CreateSection("ESP Features")
 
 -- Функция для ESP (сюда ты будешь вставлять логику рисования)
 local function ToggleESP(name, state)
-    if state then
-        print(name .. " enabled")
-        -- Здесь будет код активации ESP (Drawing library)
-    else
-        print(name .. " disabled")
-        -- Здесь будет код отключения ESP
+    -- Player ESP
+    if name == "Player ESP" then
+        for _, player in pairs(game.Players:GetPlayers()) do
+            if player.Character then
+                if state then
+                    local highlight = Instance.new("Highlight", player.Character)
+                    highlight.Name = "LuminaHighlight"
+                    highlight.FillColor = Color3.fromRGB(255, 0, 0) -- Красный
+                else
+                    if player.Character:FindFirstChild("LuminaHighlight") then
+                        player.Character.LuminaHighlight:Destroy()
+                    end
+                end
+            end
+        end
+    -- Fruit ESP
+    elseif name == "Fruit ESP" then
+        for _, item in pairs(workspace:GetDescendants()) do
+            if item.Name:find("Fruit") and item:IsA("Model") then
+                if state then
+                     local highlight = Instance.new("Highlight", item)
+                     highlight.Name = "LuminaHighlight"
+                     highlight.FillColor = Color3.fromRGB(255, 255, 0) -- Желтый
+                else
+                     for _, h in pairs(item:GetChildren()) do 
+                         if h.Name == "LuminaHighlight" then h:Destroy() end 
+                     end
+                end
+            end
+        end
+    -- Chest ESP
+    elseif name == "Chest ESP" then
+        for _, item in pairs(workspace:GetDescendants()) do
+            if item.Name:find("Chest") and item:IsA("Model") then
+                if state then
+                     local highlight = Instance.new("Highlight", item)
+                     highlight.Name = "LuminaHighlight"
+                     highlight.FillColor = Color3.fromRGB(0, 0, 255) -- Синий
+                else
+                     for _, h in pairs(item:GetChildren()) do 
+                         if h.Name == "LuminaHighlight" then h:Destroy() end 
+                     end
+                end
+            end
+        end
     end
 end
 
--- 1. ESP People
-ESPTab:CreateToggle({
-    Name = "Player ESP",
-    CurrentValue = false,
-    Callback = function(Value)
-        ToggleESP("Player ESP", Value)
-    end
-})
-
--- 2. ESP Fruits
-ESPTab:CreateToggle({
-    Name = "Fruit ESP",
-    CurrentValue = false,
-    Callback = function(Value)
-        ToggleESP("Fruit ESP", Value)
-    end
-})
-
--- 3. ESP Chests
-ESPTab:CreateToggle({
-    Name = "Chest ESP",
-    CurrentValue = false,
-    Callback = function(Value)
-        ToggleESP("Chest ESP", Value)
-    end
-})
 
 -- Уведомление при запуске
 Rayfield:Notify({
