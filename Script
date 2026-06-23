@@ -9,77 +9,83 @@ local Window = Rayfield:CreateWindow({
     ConfigurationSaving = { Enabled = true, FolderName = "LuminaConfigs" }
 })
 
--- Функция для ESP
+-- Переменные и сервисы
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+local ESP_Objects = {} -- Таблица для Drawing объектов
+
+-- Функция для создания ESP
 local function ToggleESP(name, state)
-    -- Функция для удаления старых подссветок
-    local function clearHighlights(parent)
-        for _, obj in pairs(parent:GetDescendants()) do
-            if obj.Name == "LuminaHighlight" then obj:Destroy() end
+    -- Если выключаем ESP
+    if not state then
+        if name == "Player ESP" then
+            for _, obj in pairs(ESP_Objects) do
+                obj.Box:Remove()
+                obj.Tracer:Remove()
+            end
+            ESP_Objects = {}
+        else
+            for _, obj in pairs(workspace:GetDescendants()) do
+                if obj.Name == "LuminaHighlight" then obj:Destroy() end
+            end
         end
+        return
     end
 
+    -- Если включаем ESP
     if name == "Player ESP" then
-        for _, player in pairs(game.Players:GetPlayers()) do
-            if player.Character then
-                if state then
-                    local highlight = Instance.new("Highlight", player.Character)
-                    highlight.Name = "LuminaHighlight"
-                    highlight.FillColor = Color3.fromRGB(255, 0, 0)
-                else
-                    clearHighlights(player.Character)
+        task.spawn(function()
+            while true do
+                if not Rayfield:GetToggle("Player ESP") then break end
+                
+                for _, player in pairs(Players:GetPlayers()) do
+                    if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                        if not ESP_Objects[player.Name] then
+                            local box = Drawing.new("Square")
+                            box.Visible = false; box.Thickness = 2; box.Color = Color3.fromRGB(255, 0, 0); box.Filled = false
+                            local tracer = Drawing.new("Line")
+                            tracer.Visible = false; tracer.Thickness = 1; tracer.Color = Color3.fromRGB(255, 0, 0)
+                            ESP_Objects[player.Name] = {Box = box, Tracer = tracer}
+                        end
+
+                        local rootPart = player.Character.HumanoidRootPart
+                        local vector, onScreen = Camera:WorldToViewportPoint(rootPart.Position)
+
+                        if onScreen then
+                            ESP_Objects[player.Name].Box.Size = Vector2.new(50, 80)
+                            ESP_Objects[player.Name].Box.Position = Vector2.new(vector.X - 25, vector.Y - 40)
+                            ESP_Objects[player.Name].Box.Visible = true
+                            ESP_Objects[player.Name].Tracer.From = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y)
+                            ESP_Objects[player.Name].Tracer.To = Vector2.new(vector.X, vector.Y)
+                            ESP_Objects[player.Name].Tracer.Visible = true
+                        else
+                            ESP_Objects[player.Name].Box.Visible = false
+                            ESP_Objects[player.Name].Tracer.Visible = false
+                        end
+                    end
                 end
+                RunService.RenderStepped:Wait()
             end
-        end
-    elseif name == "Fruit ESP" then
+        end)
+    else
+        -- Логика для Fruit/Chest ESP
         for _, item in pairs(workspace:GetDescendants()) do
-            if item.Name:find("Fruit") and item:IsA("Model") then
-                if state then
-                     local highlight = Instance.new("Highlight", item)
-                     highlight.Name = "LuminaHighlight"
-                     highlight.FillColor = Color3.fromRGB(255, 255, 0)
-                else
-                     clearHighlights(item)
-                end
-            end
-        end
-    elseif name == "Chest ESP" then
-        for _, item in pairs(workspace:GetDescendants()) do
-            if item.Name:find("Chest") and item:IsA("Model") then
-                if state then
-                     local highlight = Instance.new("Highlight", item)
-                     highlight.Name = "LuminaHighlight"
-                     highlight.FillColor = Color3.fromRGB(0, 0, 255)
-                else
-                     clearHighlights(item)
-                end
+            if item.Name:find(name == "Fruit ESP" and "Fruit" or "Chest") and item:IsA("Model") then
+                local highlight = Instance.new("Highlight", item)
+                highlight.Name = "LuminaHighlight"
+                highlight.FillColor = name == "Fruit ESP" and Color3.fromRGB(255, 255, 0) or Color3.fromRGB(0, 0, 255)
             end
         end
     end
 end
 
--- Создание вкладок и кнопок
+-- Создание вкладки и кнопок
 local Tab = Window:CreateTab("ESP", nil)
 
-Tab:CreateToggle({
-    Name = "Player ESP",
-    CurrentValue = false,
-    Callback = function(Value) ToggleESP("Player ESP", Value) end
-})
+Tab:CreateToggle({ Name = "Player ESP", CurrentValue = false, Callback = function(Value) ToggleESP("Player ESP", Value) end })
+Tab:CreateToggle({ Name = "Fruit ESP", CurrentValue = false, Callback = function(Value) ToggleESP("Fruit ESP", Value) end })
+Tab:CreateToggle({ Name = "Chest ESP", CurrentValue = false, Callback = function(Value) ToggleESP("Chest ESP", Value) end })
 
-Tab:CreateToggle({
-    Name = "Fruit ESP",
-    CurrentValue = false,
-    Callback = function(Value) ToggleESP("Fruit ESP", Value) end
-})
-
-Tab:CreateToggle({
-    Name = "Chest ESP",
-    CurrentValue = false,
-    Callback = function(Value) ToggleESP("Chest ESP", Value) end
-})
-
-Rayfield:Notify({
-    Title = "Lumina Workshop",
-    Content = "ESP System Loaded Successfully!",
-    Duration = 5
-})
+Rayfield:Notify({ Title = "Lumina Workshop", Content = "ESP System Loaded!", Duration = 5 })
