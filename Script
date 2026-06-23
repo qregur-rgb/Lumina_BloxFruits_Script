@@ -1,76 +1,85 @@
--- Загрузка UI библиотеки Rayfield
+-- Загрузка UI библиотеки
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
--- Создание главного окна Lumina Workshop
+-- Создание окна
 local Window = Rayfield:CreateWindow({
-    Name = "Lumina Workshop | Blox Fruits v1.0",
+    Name = "Lumina Workshop | Blox Fruits",
     LoadingTitle = "Lumina ESP System",
     LoadingSubtitle = "by Lumina",
-    ConfigurationSaving = {
-        Enabled = true,
-        FolderName = "LuminaConfigs",
-    }
+    ConfigurationSaving = { Enabled = true, FolderName = "LuminaConfigs" }
 })
 
--- Создание вкладки для ESP
-local ESPTab = Window:CreateTab("ESP Visuals", nil) -- 'nil' значит иконки нет
-local Section = ESPTab:CreateSection("ESP Features")
-
--- Функция для ESP (сюда ты будешь вставлять логику рисования)
+-- Функция для ESP
 local function ToggleESP(name, state)
-    -- Player ESP
+    -- Функция для удаления старых подссветок
+    local function clearHighlights(parent)
+        for _, obj in pairs(parent:GetDescendants()) do
+            if obj.Name == "LuminaHighlight" then obj:Destroy() end
+        end
+    end
+
     if name == "Player ESP" then
         for _, player in pairs(game.Players:GetPlayers()) do
             if player.Character then
                 if state then
                     local highlight = Instance.new("Highlight", player.Character)
                     highlight.Name = "LuminaHighlight"
-                    highlight.FillColor = Color3.fromRGB(255, 0, 0) -- Красный
+                    highlight.FillColor = Color3.fromRGB(255, 0, 0)
                 else
-                    if player.Character:FindFirstChild("LuminaHighlight") then
-                        player.Character.LuminaHighlight:Destroy()
-                    end
+                    clearHighlights(player.Character)
                 end
             end
         end
-    -- Fruit ESP
     elseif name == "Fruit ESP" then
         for _, item in pairs(workspace:GetDescendants()) do
             if item.Name:find("Fruit") and item:IsA("Model") then
                 if state then
                      local highlight = Instance.new("Highlight", item)
                      highlight.Name = "LuminaHighlight"
-                     highlight.FillColor = Color3.fromRGB(255, 255, 0) -- Желтый
+                     highlight.FillColor = Color3.fromRGB(255, 255, 0)
                 else
-                     for _, h in pairs(item:GetChildren()) do 
-                         if h.Name == "LuminaHighlight" then h:Destroy() end 
-                     end
+                     clearHighlights(item)
                 end
             end
         end
-    -- Chest ESP
     elseif name == "Chest ESP" then
         for _, item in pairs(workspace:GetDescendants()) do
             if item.Name:find("Chest") and item:IsA("Model") then
                 if state then
                      local highlight = Instance.new("Highlight", item)
                      highlight.Name = "LuminaHighlight"
-                     highlight.FillColor = Color3.fromRGB(0, 0, 255) -- Синий
+                     highlight.FillColor = Color3.fromRGB(0, 0, 255)
                 else
-                     for _, h in pairs(item:GetChildren()) do 
-                         if h.Name == "LuminaHighlight" then h:Destroy() end 
-                     end
+                     clearHighlights(item)
                 end
             end
         end
     end
 end
 
+-- Создание вкладок и кнопок
+local Tab = Window:CreateTab("ESP", nil)
 
--- Уведомление при запуске
+Tab:CreateToggle({
+    Name = "Player ESP",
+    CurrentValue = false,
+    Callback = function(Value) ToggleESP("Player ESP", Value) end
+})
+
+Tab:CreateToggle({
+    Name = "Fruit ESP",
+    CurrentValue = false,
+    Callback = function(Value) ToggleESP("Fruit ESP", Value) end
+})
+
+Tab:CreateToggle({
+    Name = "Chest ESP",
+    CurrentValue = false,
+    Callback = function(Value) ToggleESP("Chest ESP", Value) end
+})
+
 Rayfield:Notify({
     Title = "Lumina Workshop",
     Content = "ESP System Loaded Successfully!",
-    Duration = 5,
-    Image = nil,
+    Duration = 5
 })
